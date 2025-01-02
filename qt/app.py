@@ -735,11 +735,56 @@ class MainWindow(QMainWindow):
         restore.insertSeparator(self.act_restore_parent)
         restore.setToolTipsVisible(True)
 
+    def wrap_text(self, text, max_len):
+        """Helper function to insert newlines into text for 
+        word wrapping effect
+        
+        args:
+            text (str): sentence to have newlines added
+            max_len (int): maximum characters before newline insertion
+            
+        returns:
+            string of lines joined by newline characters
+        """
+        lines = []
+        line = []
+        words = text.split()
+        for word in words:
+            if len(word) + len(line) <= max_len:
+                line.append(word)
+            else:
+                lines.append(" ".join(line))
+                line = [word]
+        if line:
+            lines.append(" ".join(line))
+        return '\n'.join(lines)
+    
+    def style_setter(self, point, toolbar):
+        """
+        Create a context menu for changing the style of the icons
+        """
+        context_menu = QMenu(self)
+        options = (
+            ('Text Under Icon', Qt.ToolButtonStyle.ToolButtonTextUnderIcon),
+            ('Text Only', Qt.ToolButtonStyle.ToolButtonTextOnly),
+            ('Text Beside Icon', Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
+            ('Icon Only', Qt.ToolButtonStyle.ToolButtonIconOnly),
+        )
+        for text, style in options:
+            menu_item = QAction(text, self)
+            menu_item.triggered.connect(lambda checked, s=style: toolbar.setToolButtonStyle(s))
+            context_menu.addAction(menu_item)
+        context_menu.exec(toolbar.mapToGlobal(point))
+
     def _create_main_toolbar(self):
         """Create the main toolbar and connect it to actions."""
 
         toolbar = self.addToolBar('main')
         toolbar.setFloatable(False)
+    
+        # create context menu for right click
+        toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        toolbar.customContextMenuRequested.connect(lambda point: self.style_setter(point, toolbar))
 
         # Drop-Down: Profiles
         self.comboProfiles = qttools.ProfileCombo(self)
@@ -775,6 +820,9 @@ class MainWindow(QMainWindow):
                     button_tip = f'{act.text()}: {act.toolTip()}'
 
                 toolbar.widgetForAction(act).setToolTip(button_tip)
+
+            # add linebreaks for wrapping text
+            act.setText(self.wrap_text(act.text(), 8))
 
         # toolbar sub menu: take snapshot
         submenu_take_snapshot = QMenu(self)
