@@ -758,7 +758,7 @@ class MainWindow(QMainWindow):
         if line:
             lines.append(" ".join(line))
         return '\n'.join(lines)
-    
+
     def style_setter(self, point, toolbar):
         """
         Create a context menu for changing the style of the icons
@@ -781,7 +781,7 @@ class MainWindow(QMainWindow):
 
         toolbar = self.addToolBar('main')
         toolbar.setFloatable(False)
-    
+
         # create context menu for right click
         toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         toolbar.customContextMenuRequested.connect(lambda point: self.style_setter(point, toolbar))
