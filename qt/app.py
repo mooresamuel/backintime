@@ -742,10 +742,10 @@ class MainWindow(QMainWindow):
         """
         context_menu = QMenu(self)
         options = (
-            (_('Icon Only'), Qt.ToolButtonStyle.ToolButtonIconOnly),
-            (_('Text Only'), Qt.ToolButtonStyle.ToolButtonTextOnly),
-            (_('Text Under Icon'), Qt.ToolButtonStyle.ToolButtonTextUnderIcon),
-            (_('Text Beside Icon'), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
+            (_('Icons only'), Qt.ToolButtonStyle.ToolButtonIconOnly),
+            (_('Text only'), Qt.ToolButtonStyle.ToolButtonTextOnly),
+            (_('Text below icons'), Qt.ToolButtonStyle.ToolButtonTextUnderIcon),
+            (_('Text beside icon'), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
         )
         for text, style in options:
             text = '✔ ' + text if toolbar.toolButtonStyle() == style else '  ' + text
