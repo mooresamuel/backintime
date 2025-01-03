@@ -32,7 +32,7 @@ import tools
 tools.initiate_translation(None)
 
 import qttools
-from textwrap import TextWrapper
+from textwrap import fill
 
 import backintime
 import tools
@@ -799,7 +799,7 @@ class MainWindow(QMainWindow):
 
                 toolbar.widgetForAction(act).setToolTip(button_tip)
 
-            act.setText(TextWrapper(width=8, break_long_words=False).fill(act.text()))
+            act.setText(fill(act.text(), width=8, break_long_words=False))
 
         # toolbar sub menu: take snapshot
         submenu_take_snapshot = QMenu(self)
