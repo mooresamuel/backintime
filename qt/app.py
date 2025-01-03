@@ -45,6 +45,7 @@ import encfsmsgbox
 from exceptions import MountException
 
 from PyQt6.QtGui import (QAction,
+                         QActionGroup,
                          QShortcut,
                          QDesktopServices,
                          QPalette,
@@ -741,6 +742,7 @@ class MainWindow(QMainWindow):
         Create a context menu for changing the style of the icons
         """
         context_menu = QMenu(self)
+        group = QActionGroup(self)
         options = (
             (_('Icons only'), Qt.ToolButtonStyle.ToolButtonIconOnly),
             (_('Text only'), Qt.ToolButtonStyle.ToolButtonTextOnly),
@@ -748,10 +750,13 @@ class MainWindow(QMainWindow):
             (_('Text beside icon'), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
         )
         for text, style in options:
-            text = '✔ ' + text if toolbar.toolButtonStyle() == style else '  ' + text
-            menu_item = QAction(text, self)
-            menu_item.triggered.connect(lambda checked, s=style: toolbar.setToolButtonStyle(s))
-            context_menu.addAction(menu_item)
+            action = QAction(text, self)
+            action.setCheckable(True)
+            action.setChecked(toolbar.toolButtonStyle() == style)
+            group.addAction(action)
+            action.triggered.connect(lambda _, s=style: toolbar.setToolButtonStyle(s))
+
+        context_menu.addActions(group.actions())
         context_menu.exec(toolbar.mapToGlobal(point))
 
     def _create_main_toolbar(self):
