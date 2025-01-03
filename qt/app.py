@@ -799,7 +799,7 @@ class MainWindow(QMainWindow):
 
                 toolbar.widgetForAction(act).setToolTip(button_tip)
 
-            act.setText(fill(act.text(), width=8, break_long_words=False))
+            act.setText(textwrap.fill(act.text(), width=8, break_long_words=False))
 
         # toolbar sub menu: take snapshot
         submenu_take_snapshot = QMenu(self)
