@@ -32,7 +32,7 @@ import tools
 tools.initiate_translation(None)
 
 import qttools
-from textwrap import fill
+import textwrap
 
 import backintime
 import tools
