@@ -32,6 +32,7 @@ import tools
 tools.initiate_translation(None)
 
 import qttools
+from textwrap import TextWrapper
 
 import backintime
 import tools
@@ -735,42 +736,19 @@ class MainWindow(QMainWindow):
         restore.insertSeparator(self.act_restore_parent)
         restore.setToolTipsVisible(True)
 
-    def wrap_text(self, text, max_len):
-        """Helper function to insert newlines into text for 
-        word wrapping effect
-        
-        args:
-            text (str): sentence to have newlines added
-            max_len (int): maximum characters before newline insertion
-            
-        returns:
-            string of lines joined by newline characters
-        """
-        lines = []
-        line = []
-        words = text.split()
-        for word in words:
-            if len(word) + len(line) <= max_len:
-                line.append(word)
-            else:
-                lines.append(" ".join(line))
-                line = [word]
-        if line:
-            lines.append(" ".join(line))
-        return '\n'.join(lines)
-
     def style_setter(self, point, toolbar):
         """
         Create a context menu for changing the style of the icons
         """
         context_menu = QMenu(self)
         options = (
-            ('Text Under Icon', Qt.ToolButtonStyle.ToolButtonTextUnderIcon),
-            ('Text Only', Qt.ToolButtonStyle.ToolButtonTextOnly),
-            ('Text Beside Icon', Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
-            ('Icon Only', Qt.ToolButtonStyle.ToolButtonIconOnly),
+            (_('Icon Only'), Qt.ToolButtonStyle.ToolButtonIconOnly),
+            (_('Text Only'), Qt.ToolButtonStyle.ToolButtonTextOnly),
+            (_('Text Under Icon'), Qt.ToolButtonStyle.ToolButtonTextUnderIcon),
+            (_('Text Beside Icon'), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
         )
         for text, style in options:
+            text = '✔ ' + text if toolbar.toolButtonStyle() == style else '  ' + text
             menu_item = QAction(text, self)
             menu_item.triggered.connect(lambda checked, s=style: toolbar.setToolButtonStyle(s))
             context_menu.addAction(menu_item)
@@ -821,8 +799,7 @@ class MainWindow(QMainWindow):
 
                 toolbar.widgetForAction(act).setToolTip(button_tip)
 
-            # add linebreaks for wrapping text
-            act.setText(self.wrap_text(act.text(), 8))
+            act.setText(TextWrapper(width=8, break_long_words=False).fill(act.text()))
 
         # toolbar sub menu: take snapshot
         submenu_take_snapshot = QMenu(self)
