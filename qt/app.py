@@ -752,10 +752,10 @@ class MainWindow(QMainWindow):
                 Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
         )
     
-    def _set_toolbar_button_style(self, toolbar, style, index):
+    def _set_toolbar_button_style(self, toolbar, style):
         """Set toolbar button style and store the selected index."""
         toolbar.setToolButtonStyle(style)
-        self.toolbar_button_style = int(style)
+        self.toolbar_button_style = style.value
 
     def _context_menu_button_style(self,
                                     point: QPoint,
@@ -767,14 +767,14 @@ class MainWindow(QMainWindow):
         group = QActionGroup(self)
 
 
-        for index, (text, style) in enumerate(self._button_styles()):
+        for text, style in self._button_styles():
             action = QAction(text, self)
             action.setCheckable(True)
             action.setChecked(toolbar.toolButtonStyle() == style)
             group.addAction(action)
             action.triggered.connect(
-                lambda _, s=style, i=index: 
-                self._set_toolbar_button_style(toolbar, s, i)
+                lambda _, s=style: 
+                self._set_toolbar_button_style(toolbar, s)
                 )
         
         menu.addActions(group.actions())
@@ -793,7 +793,8 @@ class MainWindow(QMainWindow):
             lambda point: self._context_menu_button_style(point, toolbar))
 
         # Resore button styling for main toolbar
-        toolbar.setToolButtonStyle(Qt.ToolButtonStyle(self.toolbar_button_style))
+        toolbar.setToolButtonStyle(
+            Qt.ToolButtonStyle(self.toolbar_button_style))
 
         # Drop-Down: Profiles
         self.comboProfiles = qttools.ProfileCombo(self)
