@@ -755,7 +755,7 @@ class MainWindow(QMainWindow):
     def _set_toolbar_button_style(self, toolbar, style, index):
         """Set toolbar button style and store the selected index."""
         toolbar.setToolButtonStyle(style)
-        self.toolbar_button_style = index
+        self.toolbar_button_style = int(style)
 
     def _context_menu_button_style(self,
                                     point: QPoint,
