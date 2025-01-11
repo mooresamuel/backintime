@@ -793,8 +793,7 @@ class MainWindow(QMainWindow):
             lambda point: self._context_menu_button_style(point, toolbar))
 
         # Resore button styling for main toolbar
-        toolbar.setToolButtonStyle(
-            self._button_styles()[self.toolbar_button_style][1])
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle(self.toolbar_button_style))
 
         # Drop-Down: Profiles
         self.comboProfiles = qttools.ProfileCombo(self)
