@@ -125,9 +125,6 @@ class MainWindow(QMainWindow):
 
         state_data = StateData()
 
-        # main toolbar icon styles
-        self.toolbar_button_style = state_data.toolbar_button_style
-        
         # shortcuts without buttons
         self._create_shortcuts_without_actions()
 
@@ -755,7 +752,7 @@ class MainWindow(QMainWindow):
     def _set_toolbar_button_style(self, toolbar, style):
         """Set toolbar button style and store the selected index."""
         toolbar.setToolButtonStyle(style)
-        self.toolbar_button_style = style.value
+        StateData().toolbar_button_style = style.value
 
     def _context_menu_button_style(self,
                                     point: QPoint,
@@ -794,7 +791,7 @@ class MainWindow(QMainWindow):
 
         # Resore button styling for main toolbar
         toolbar.setToolButtonStyle(
-            Qt.ToolButtonStyle(self.toolbar_button_style))
+            Qt.ToolButtonStyle(StateData().toolbar_button_style))
 
         # Drop-Down: Profiles
         self.comboProfiles = qttools.ProfileCombo(self)
@@ -906,7 +903,6 @@ class MainWindow(QMainWindow):
             self.places.header().sortIndicatorSection(),
             self.places.header().sortIndicatorOrder().value,
         )
-        state_data.toolbar_button_style = self.toolbar_button_style
         state_data.mainwindow_coords = (self.x(), self.y())
         state_data.mainwindow_dims = (self.width(), self.height())
         state_data.mainwindow_main_splitter_widths = self.mainSplitter.sizes()
