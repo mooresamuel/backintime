@@ -748,7 +748,7 @@ class MainWindow(QMainWindow):
                 _('Text beside icon'),
                 Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
         )
-    
+
     def _set_toolbar_button_style(self, toolbar, style):
         """Set toolbar button style and store the selected index."""
         toolbar.setToolButtonStyle(style)
@@ -770,12 +770,12 @@ class MainWindow(QMainWindow):
             action.setChecked(toolbar.toolButtonStyle() == style)
             group.addAction(action)
             action.triggered.connect(
-                lambda _, s=style: 
+                lambda _, s=style:
                 self._set_toolbar_button_style(toolbar, s)
                 )
-        
+
         menu.addActions(group.actions())
-       
+
         menu.exec(toolbar.mapToGlobal(point))
 
     def _create_main_toolbar(self):

@@ -327,9 +327,8 @@ class StateData(dict, metaclass=singleton.Singleton):
             return self['gui']['mainwindow']['toolbar_button_style']
         except KeyError:
             self['gui']['mainwindow']['toolbar_button_style'] = 0
-            return self['gui']['mainwindow']['toolbar_button_style']        
-    
+            return self['gui']['mainwindow']['toolbar_button_style']
+
     @toolbar_button_style.setter
     def toolbar_button_style(self, value) -> None:
         self['gui']['mainwindow']['toolbar_button_style'] = value
-        
