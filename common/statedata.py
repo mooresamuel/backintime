@@ -322,12 +322,16 @@ class StateData(dict, metaclass=singleton.Singleton):
 
     @property
     def toolbar_button_style(self) -> int:
-        """Return style of icons for the main toolbar."""
+        """Style of icons for the main toolbar.
+
+        Returns:
+           Style value as integer (default: 0 as ``ToolButtonIconOnly``)
+        """
         try:
             return self['gui']['mainwindow']['toolbar_button_style']
         except KeyError:
             self['gui']['mainwindow']['toolbar_button_style'] = 0
-            return self['gui']['mainwindow']['toolbar_button_style']
+            return self.toolbar_button_style
 
     @toolbar_button_style.setter
     def toolbar_button_style(self, value) -> None:
