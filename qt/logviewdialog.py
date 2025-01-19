@@ -17,6 +17,8 @@ from PyQt6.QtWidgets import (QDialog,
                              QComboBox,
                              QDialogButtonBox,
                              QCheckBox,
+                             QPushButton,
+                             QTextEdit
                              )
 from PyQt6.QtCore import QFileSystemWatcher
 import qttools
@@ -114,6 +116,11 @@ class LogViewDialog(QDialog):
             _('rsync transfer failures (experimental)'),
             snapshotlog.LogFilter.RSYNC_TRANSFER_FAILURES)
 
+        # View snapshot summary
+        button = QPushButton("Snapshot Summary")
+        button.clicked.connect(self.display_snapshot_summary)
+        layout.addWidget(button)
+        
         # text view
         self.txtLogView = QPlainTextEdit(self)
         self.txtLogView.setFont(QFont('Monospace'))
@@ -149,6 +156,28 @@ class LogViewDialog(QDialog):
         # passes the path to the changed file to updateLog()
         self.watcher.fileChanged.connect(self.updateLog)
 
+    def display_snapshot_summary(self):
+        # summary_lines = "\n".join(line for line in snapshotlog.SnapshotLog(self.config).get_summary(self.decode))
+        # QMessageBox.information(self, "Summary", summary_lines)
+                # Create a dialog
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Summary")
+
+        # Create a QTextEdit for displaying summary
+        text_edit = QTextEdit(dialog)
+        text_edit.setReadOnly(True)
+
+        # Collect lines from the generator and set as text
+        text_edit.setPlainText("\n".join(line for line in snapshotlog.SnapshotLog(self.config).get_summary()))
+
+        # Add the QTextEdit to the dialog layout
+        layout = QVBoxLayout()
+        layout.addWidget(text_edit)
+        dialog.setLayout(layout)
+
+        # Show the dialog
+        dialog.show()
+        
     def cbDecodeChanged(self):
         if self.cbDecode.isChecked():
             if not self.decode:

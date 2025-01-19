@@ -200,6 +200,50 @@ class SnapshotLog:
             for line in msg:
                 yield line
 
+    def get_summary(self, decode = None):
+        """Get summary from all log files.
+        
+        Check all snapshot logs and provide a summary including profile name,
+        date of last snapshot, number of changes, and number of errors.
+
+        Args:
+            decode (encfstools.Decode): instance used for decoding lines or ``None``
+
+        Yields:
+            str:                        snapshot summaries
+        """
+        for profile in self.config.profiles():
+            log_file = self.config.takeSnapshotLogFile(profile)
+            try: 
+                with open(log_file, 'rt') as f:
+                    yield f"Profile name: {self.config.profileName(profile)}"
+                    errors = 0
+                    changes = 0
+                    for line in f.readlines():
+                        # Decode line if necessary
+                        if decode:
+                            line = decode.log(line)
+                        # Yield snapshot date
+                        if (date := re.search(r'(?<=: )(.*?)(?= ==)', line)):
+                            yield date.group(0)
+                        print(line)
+                        # Count changes and errors
+                        if re.search(r'^\[E\].*', line):
+                            errors += 1
+                        if re.search(r'^\[C\].*', line):
+                            changes += 1
+
+                    change_text = _('change') if changes == 1 else _('changes')
+                    error_text = _('error') if errors == 1 else _('errors')
+                    yield f"{changes} {change_text} and {errors} {error_text}\n"
+
+            except Exception as e:
+                msg = ('Failed to get take_snapshot for profile: {}:'
+                       .format(self.config.profileName(profile)), str(e), '\n')
+                logger.debug(' '.join(msg), self)
+                for line in msg:
+                    yield line
+
     def new(self, date):
         """
         Create a new log file or - if the last new_snapshot can be continued -
