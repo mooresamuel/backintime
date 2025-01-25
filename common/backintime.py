@@ -232,7 +232,7 @@ def createParsers(app_name='backintime'):
                                                  help = description,
                                                  description = description)
     backupCP.set_defaults(func = backup)
-    parsers[command] = backupCP    
+    parsers[command] = backupCP
 
     command = 'backup-job'
     nargs = 0
@@ -474,15 +474,25 @@ def createParsers(app_name='backintime'):
                                                  description = description)
     snapshotStatusCP.set_defaults(func = snapshotStatus)
     parsers[command] = snapshotStatusCP
-    snapshotStatusCP.add_argument               ('--profile',
-                                                action = 'store',
-                                                help = 'a more detailed summary of the selected profile name.')
-    snapshotStatusCP.add_argument               ('--profile-id',
-                                                action = 'store',
-                                                help = 'a more detailed summary of the selected profile id.')
-    snapshotStatusCP.add_argument               ('--quiet',
+    profileGroup = snapshotStatusCP.add_mutually_exclusive_group()
+    profileGroup.add_argument                   ('--profile',
+                                                 metavar = 'NAME',
+                                                 type = str,
+                                                 action = 'store',
+                                                 help = 'a more detailed summary of the profile with the name, %(metavar)s')
+    profileGroup.add_argument                   ('--profile-id',
+                                                 metavar = 'ID',
+                                                 type = int,
+                                                 action = 'store',
+                                                 help = 'a more detailed summary of the profile with the id, %(metavar)s')
+    profileGroup.add_argument                   ('--issues',
+                                                 metavar = '',
+                                                 type = int,
+                                                 action = 'store',
+                                                 help = 'show only profiles with errors on most recent run or no snapshot history at all')
+    snapshotStatusCP.add_argument               ('--human-readable', '-r',
                                                 action = 'store_true',
-                                                help = 'filter profiles with errors on most recent run or no snapshot history.')
+                                                help = "print in human readable format")
 
     command = 'unmount'
     nargs = 0
@@ -1157,6 +1167,84 @@ def snapshotsListPath(args):
         _umount(cfg)
     sys.exit(RETURN_OK)
 
+def lastSnapshotDict(config):
+    """
+    Return a dictionary containing the profile name and most recent snapshot
+    data for the given profile id. If the snapshot was unsuccessful, the
+    date of the most recent successful snapshot is included in the dict.
+
+    Args:
+        config: 
+                        The currently selected configuration.
+
+    Returns:
+        dict:
+                        the most recent successful snapshot for the profile.
+    """
+
+    try:
+        errors = snapshots.lastSnapshot(config).failed
+        info = {_('Last snapshot'):
+            str(snapshots.lastSnapshot(config).date),
+                _('Successful'): not errors}
+        if errors:
+            last_success = None
+            for snapshot in snapshots.listSnapshots(config):
+                if not snapshot.failed:
+                    last_success = snapshot.date
+                    break
+            info.update({_('Last successful'):
+                str(last_success) if last_success else None})
+        return {config.profileName(config.currentProfile()): info}
+    except:
+        return {config.profileName(config.currentProfile()):
+                {_('Last snapshot'): None}}
+
+def profileStatus(args):
+    """
+    Print most recent snapshot and snapshot details for the profile
+    specified with --profile or --profile-id (--profile takes 
+    preference).
+
+    Args:
+        args (argparse.Namespace):
+                        previously parsed arguments
+
+    Raises:
+        SystemExit:     0
+    """
+    force_stdout = setQuiet(args)
+    cfg = getConfig(args)
+    _mount(cfg)
+    if args.profile:
+        if not cfg.setCurrentProfileByName(args.profile):
+            _umount(cfg)
+            logger.error(args.profile)
+    elif not cfg.setCurrentProfile(args.profile_id):
+        _umount(cfg)
+        logger.error(args.profile_id)
+    id = cfg.currentProfile()
+    info = lastSnapshotDict(cfg)
+    info[cfg.profileName(id)].update({
+            _('Paths'): {
+                _('Snapshots'): cfg.snapshotsFullPath(),
+                _('Path exists'): cfg.canBackup(),
+                _('Mount point'): cfg.get_snapshots_mountpoint(),
+                _('Log file'): cfg.takeSnapshotLogFile(),
+            }})
+    print(json.dumps(info, indent=2), file=force_stdout)
+    _umount(cfg)
+    sys.exit(RETURN_OK)
+
+def printDictHumanReadable(dictionary, file=None, indent=0):
+    """Print dict in human readable form."""
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            print(f"{' ' * indent}{key}:", file=file)
+            printDictHumanReadable(value, file=file, indent=indent + 3)
+        else:
+            print(f"{' ' * indent}{key:{indent + 12}} {value}", file=file)
+
 def snapshotStatus(args):
     """
     Print a summary of most recent snapshot for each profile.
@@ -1168,35 +1256,22 @@ def snapshotStatus(args):
     Raises:
         SystemExit:     0
     """
+    if args.profile or args.profile_id:
+        profileStatus(args)
     force_stdout = setQuiet(args)
     cfg = getConfig(args)
-    if args.profile or args.profile_id:
-            print('Not implemented yet')
-            _umount(cfg)
-            sys.exit(RETURN_OK)
     _mount(cfg)
     status = {}
-    for i in cfg.profiles():
-        cfg.setCurrentProfile(i)
-        try:
-            errors = snapshots.lastSnapshot(cfg).failed
-            profile = {_('Last snapshot'):
-                str(snapshots.lastSnapshot(cfg).date),
-                    _('Successfull'): not errors}
-            if errors:
-                last_success = None
-                for snapshot in snapshots.listSnapshots(cfg):
-                    if not snapshot.failed:
-                        last_success = snapshot.date
-                        break
-                profile.update({_('Last successful snapshot'):
-                    str(last_success) if last_success else None})
-            if not errors and args.quiet:
-                continue
-            status.update({cfg.profileName(i): profile})
-        except:
-            status.update({cfg.profileName(i): {_('Last snapshot'): None}})
-    print(json.dumps(status, indent=2), file=force_stdout)
+    for profile in cfg.profiles():
+        cfg.setCurrentProfile(profile)
+        profile_dict = lastSnapshotDict(cfg)
+        if not args.quiet or \
+            not profile_dict[cfg.profileName(profile)].get('Successful'):
+            status.update(profile_dict)
+    if not args.human_readable:
+        print(json.dumps(status, indent=2), file=force_stdout)
+    else:
+        printDictHumanReadable(status, force_stdout)
     _umount(cfg)
     sys.exit(RETURN_OK)
 
