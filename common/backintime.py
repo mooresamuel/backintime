@@ -233,6 +233,7 @@ def createParsers(app_name='backintime'):
                                                  description = description)
     backupCP.set_defaults(func = backup)
     parsers[command] = backupCP
+    
 
     command = 'backup-job'
     nargs = 0
@@ -463,6 +464,26 @@ def createParsers(app_name='backintime'):
                                                  description = description)
     snapshotsPathCP.set_defaults(func = snapshotsPath)
     parsers[command] = snapshotsPathCP
+
+    command = 'status'
+    nargs = 0
+    aliases.append((command, nargs))
+    description = 'Show a summary of the last snapshot from each profile.'
+    snapshotStatusCP =       subparsers.add_parser(command,
+                                                 epilog = epilogCommon,
+                                                 help = description,
+                                                 description = description)
+    snapshotStatusCP.set_defaults(func = snapshotStatus)
+    parsers[command] = snapshotStatusCP
+    snapshotStatusCP.add_argument               ('--profile',
+                                                action = 'store',
+                                                help = 'a more detailed summary of the selected profile name.')
+    snapshotStatusCP.add_argument               ('--profile-id',
+                                                action = 'store',
+                                                help = 'a more detailed summary of the selected profile id.')
+    snapshotStatusCP.add_argument               ('--quiet',
+                                                action = 'store_true',
+                                                help = 'filter profiles errors on most recent run or no snapshot history.')
 
     command = 'unmount'
     nargs = 0
@@ -1137,6 +1158,48 @@ def snapshotsListPath(args):
         _umount(cfg)
     sys.exit(RETURN_OK)
 
+def snapshotStatus(args):
+    """
+    Print a summary of most recent snapshot for each profile.
+
+    Args:
+        args (argparse.Namespace):
+                        previously parsed arguments
+
+    Raises:
+        SystemExit:     0
+    """
+    force_stdout = setQuiet(args)
+    cfg = getConfig(args)
+    if args.profile or args.profile_id:
+            print('Not implemented yet')
+            _umount(cfg)
+            sys.exit(RETURN_OK)
+    _mount(cfg)
+    status = {}
+    for i in cfg.profiles():
+        cfg.setCurrentProfile(i)
+        try:
+            errors = snapshots.lastSnapshot(cfg).failed
+            profile = {_('Last snapshot'):
+                str(snapshots.lastSnapshot(cfg).date),
+                    _('Successfull'): not errors}
+            if errors:
+                last_success = None
+                for snapshot in snapshots.listSnapshots(cfg):
+                    if not snapshot.failed:
+                        last_success = snapshot.date
+                        break
+                profile.update({_('Last successful snapshot'):
+                    str(last_success) if last_success else None})
+            if not errors and args.quiet:
+                continue
+            status.update({cfg.profileName(i): profile})
+        except:
+            status.update({cfg.profileName(i): {_('Last snapshot'): None}})
+    print(json.dumps(status, indent=2), file=force_stdout)
+    _umount(cfg)
+    sys.exit(RETURN_OK)
 
 def lastSnapshot(args):
     """
