@@ -232,8 +232,7 @@ def createParsers(app_name='backintime'):
                                                  help = description,
                                                  description = description)
     backupCP.set_defaults(func = backup)
-    parsers[command] = backupCP
-    
+    parsers[command] = backupCP    
 
     command = 'backup-job'
     nargs = 0
