@@ -482,7 +482,7 @@ def createParsers(app_name='backintime'):
                                                 help = 'a more detailed summary of the selected profile id.')
     snapshotStatusCP.add_argument               ('--quiet',
                                                 action = 'store_true',
-                                                help = 'filter profiles errors on most recent run or no snapshot history.')
+                                                help = 'filter profiles with errors on most recent run or no snapshot history.')
 
     command = 'unmount'
     nargs = 0
